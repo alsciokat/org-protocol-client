@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Org Capture — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="settings">
+      <header class="settings__header">
+        <img class="settings__logo" src="../../icons/org-mode-unicorn.png" alt="" />
+        <h1>Org Capture</h1>
+      </header>
+
+      <form id="settings-form">
+        <section class="card">
+          <h2>With a selection</h2>
+          <p class="card__hint">Used when text is selected on the page.</p>
+          <div class="field">
+            <label for="selected-template">Template key</label>
+            <input id="selected-template" type="text" maxlength="8" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="selected-protocol">Protocol</label>
+            <select id="selected-protocol">
+              <option value="capture">capture</option>
+              <option value="roam-ref">roam-ref</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Without a selection</h2>
+          <p class="card__hint">Used when nothing is selected on the page.</p>
+          <div class="field">
+            <label for="unselected-template">Template key</label>
+            <input id="unselected-template" type="text" maxlength="8" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="unselected-protocol">Protocol</label>
+            <select id="unselected-protocol">
+              <option value="capture">capture</option>
+              <option value="roam-ref">roam-ref</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Behavior</h2>
+          <label class="toggle">
+            <input id="notify-on-capture" type="checkbox" />
+            <span>Show a confirmation after capturing</span>
+          </label>
+          <label class="toggle">
+            <input id="use-modern-protocol" type="checkbox" />
+            <span>Use modern query-style links (Org 9.0+)</span>
+          </label>
+          <label class="toggle">
+            <input id="debug" type="checkbox" />
+            <span>Log the generated link to the console (debug)</span>
+          </label>
+        </section>
+
+        <div class="actions">
+          <button id="save" type="submit">Save</button>
+          <span id="status" class="status" role="status"></span>
+        </div>
+      </form>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
