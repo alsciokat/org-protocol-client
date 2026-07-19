@@ -1,58 +1,127 @@
-// Single source of truth for the extension's stored preferences.
+// Manage storing and loading settings
 // Licensed under MIT — see LICENSE.
 
-export const PROTOCOLS = {
-  capture: "capture",
-  roamRef: "roam-ref",
+// transport layer specification
+// the protocol format specification
+export const PARAM = {
+	template: "Template",
+	title: "Title",
+	url: "URL",
+	path: "Path",
+	ref: "Ref",
+	body: "Body",
 };
 
+export const PARAM_TYPE = {
+	key: "key",
+	href: "href",
+	// href with percent-encoding decoded — for handlers like open-source that
+	// map the URL to a local filename, which must not stay URL-encoded.
+	path: "path",
+	title: "title",
+	selection: "selection",
+};
+
+export const SUB_PROTO = {
+	capture: "capture",
+	roamRef: "roam-ref",
+	storeLink: "store-link",
+	openSource: "open-source",
+};
+
+export const SUB_PROTO_SCHEME = {
+	[SUB_PROTO.capture]: [PARAM.template, PARAM.url, PARAM.title, PARAM.body],
+	[SUB_PROTO.roamRef]: [PARAM.template, PARAM.ref, PARAM.title, PARAM.body],
+	[SUB_PROTO.storeLink]: [PARAM.url, PARAM.title],
+	[SUB_PROTO.openSource]: [PARAM.path],
+};
+
+// application layer specification
+// protocol usage specification
 export const DEFAULT_SETTINGS = {
-  selectedTemplate: "p",
-  selectedProtocol: PROTOCOLS.capture,
-  unselectedTemplate: "L",
-  unselectedProtocol: PROTOCOLS.capture,
-  useModernProtocol: true, // Org 9.0+ query-style `?template=…` links.
-  notifyOnCapture: true,
-  debug: false,
+	paramSpec: {
+		[PARAM.template]: {
+			urlKey: "template",
+			type: PARAM_TYPE.key,
+		},
+		[PARAM.title]: {
+			urlKey: "title",
+			type: PARAM_TYPE.title,
+		},
+		[PARAM.url]: {
+			urlKey: "url",
+			type: PARAM_TYPE.href,
+		},
+		[PARAM.path]: {
+			urlKey: "url",
+			type: PARAM_TYPE.path,
+		},
+		[PARAM.ref]: {
+			urlKey: "ref",
+			type: PARAM_TYPE.href,
+		},
+		[PARAM.body]: {
+			urlKey: "body",
+			type: PARAM_TYPE.selection,
+		},
+	},
+	subProtoScheme: SUB_PROTO_SCHEME,
+	schemeSpec: {
+		"Capture link": {
+			description: "Capture link using org-capture",
+			subProtocol: SUB_PROTO.capture,
+			template: "[",
+			params: [PARAM.url, PARAM.title],
+		},
+		"Capture selection": {
+			description: "Capture selection using org-capture",
+			subProtocol: SUB_PROTO.capture,
+			template: "]",
+			params: [PARAM.url, PARAM.title, PARAM.body],
+		},
+		"Store link": {
+			description: "Store link for org-insert-link (C-c C-l)",
+			subProtocol: SUB_PROTO.storeLink,
+			template: null,
+			params: [PARAM.url, PARAM.title],
+		},
+		"Open source": {
+			description: "Open url via Emacs",
+			subProtocol: SUB_PROTO.openSource,
+			template: null,
+			params: [PARAM.path],
+		},
+	},
+	defaultTextScheme: "Capture selection",
+	defaultLinkScheme: "Capture link",
+	quickCapture: false,
+	debug: false,
 };
 
-// Preferences saved under old names by earlier versions, mapped to their
-// current names so existing installs keep their settings across an update.
-const LEGACY_KEYS = {
-  overlay: "notifyOnCapture",
-  useNewStyleLinks: "useModernProtocol",
-};
+// Template keys are dropped into the `template=` query value, so trim
+// surrounding whitespace and percent-encode anything unsafe for a URL.
+export function sanitizeTemplateKey(raw) {
+	return encodeURIComponent((raw ?? "").trim());
+}
 
-// Reads stored settings, backfilling missing keys with defaults and translating
-// any values still saved under legacy names. Returns the effective settings.
+// Reads stored settings with default fallbacks. Deep-cloned so callers can
+// mutate the result (the options page does) without corrupting the shared
+// DEFAULT_SETTINGS objects.
 export async function loadSettings() {
-  const stored = await chrome.storage.sync.get(null);
-  return { ...DEFAULT_SETTINGS, ...migrateLegacyKeys(stored) };
+	const stored = await chrome.storage.sync.get(null);
+	return structuredClone({ ...DEFAULT_SETTINGS, ...stored });
 }
 
 export async function saveSettings(settings) {
-  await chrome.storage.sync.set(settings);
+	await chrome.storage.sync.set(settings);
 }
 
-// Ensures storage holds a complete, current-schema settings object. Safe to run
-// on every install and update.
+// Ensures storage holds a complete, current-schema settings object.
 export async function initializeSettings() {
-  const stored = await chrome.storage.sync.get(null);
-  const staleKeys = Object.keys(LEGACY_KEYS).filter((key) => key in stored);
-
-  if (staleKeys.length) {
-    await chrome.storage.sync.remove(staleKeys);
-  }
-  await chrome.storage.sync.set({ ...DEFAULT_SETTINGS, ...migrateLegacyKeys(stored) });
-}
-
-function migrateLegacyKeys(stored) {
-  const result = { ...stored };
-  for (const [oldKey, newKey] of Object.entries(LEGACY_KEYS)) {
-    if (oldKey in result) {
-      if (!(newKey in result)) result[newKey] = result[oldKey];
-      delete result[oldKey];
-    }
-  }
-  return result;
+	const stored = await chrome.storage.sync.get(null);
+	const staleKeys = Object.keys(stored).filter((key) => !(key in DEFAULT_SETTINGS));
+	if (staleKeys.length) {
+		await chrome.storage.sync.remove(staleKeys);
+	}
+	await chrome.storage.sync.set({ ...DEFAULT_SETTINGS, ...stored });
 }

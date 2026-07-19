@@ -3,7 +3,6 @@
   "name": "Org Protocol Client",
   "version": "0.1.0",
   "description": "Client for calling various `org-protocol`s for Emacs.",
-  // http://orgmode.org/worg/org-contrib/org-protocol.html
   "homepage_url": "https://github.com/alsciokat/org-capture-extension",
 
   "background": {
@@ -13,8 +12,21 @@
 
   "permissions": ["activeTab", "storage", "scripting"],
 
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/capture.js",
+        "src/menu.js",
+        "src/settings.js",
+        "icons/org-mode-unicorn.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
   "options_ui": {
-    "page": "src/options/options.html"
+    "page": "src/options/options.html",
+    "open_in_tab": true
   },
 
   "action": {

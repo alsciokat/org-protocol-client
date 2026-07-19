@@ -7,10 +7,14 @@
   --input-bg: Field;
   --border: ButtonBorder;
   --text: CanvasText;
-  --muted: GrayText;
+  /* GrayText is too faint on many platforms; derive a muted tone from the
+     actual text color so it stays legible in both light and dark themes. */
+  --muted: color-mix(in srgb, CanvasText 72%, Canvas);
   --accent: AccentColor;
   --accent-text: AccentColorText;
   --focus-ring: color-mix(in srgb, AccentColor 35%, transparent);
+  --hover: color-mix(in srgb, AccentColor 12%, transparent);
+  --danger: color-mix(in srgb, #d9534f 70%, CanvasText);
 }
 
 * {
@@ -19,73 +23,138 @@
 
 body {
   margin: 0;
-  padding: 24px;
-  min-width: 380px;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-.settings {
-  max-width: 440px;
-  margin: 0 auto;
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.settings__header {
+/* Sticky top bar with the primary Save action. */
+.app__bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 32px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.app__brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
 }
 
-.settings__logo {
-  width: 36px;
-  height: 36px;
+.app__logo {
+  width: 32px;
+  height: 32px;
 }
 
-.settings__header h1 {
+.app__brand h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--text);
 }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 18px;
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.app__main {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px 32px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.block__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 16px;
 }
 
-.card h2 {
+.block h2 {
   margin: 0 0 2px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.card__hint {
+.hint {
   margin: 0 0 14px;
+  max-width: 60ch;
   color: var(--muted);
   font-size: 13px;
 }
 
+.block__head .hint {
+  margin: 4px 0 0;
+}
+
+.hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+/* Protocol cards fill the width in a responsive grid. */
+.protocols {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.protocol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.protocol__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.protocol__head .field {
+  flex: 1;
+}
+
 .field {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .field label {
   color: var(--muted);
+  font-size: 13px;
 }
 
 .field input,
 .field select {
-  flex: 0 0 200px;
-  padding: 7px 10px;
+  width: 100%;
+  padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--input-bg);
@@ -98,6 +167,52 @@ body {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Parameter chips — one per param the sub-protocol allows. */
+.params {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.params legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.params__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chip:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--hover);
+}
+
+.chip input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .toggle {
@@ -114,29 +229,131 @@ body {
   accent-color: var(--accent);
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 4px;
-}
-
-button {
-  padding: 9px 20px;
-  border: none;
+/* Buttons */
+.btn {
+  padding: 9px 18px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: var(--accent);
-  color: var(--accent-text);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
-button:hover {
+.btn--primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.btn--primary:hover {
   background: color-mix(in srgb, var(--accent) 88%, CanvasText);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn--ghost:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
+.btn--danger {
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--border);
+}
+
+.btn--danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: var(--danger);
 }
 
 .status {
   color: var(--muted);
   font-size: 13px;
+}
+
+.status--error {
+  color: var(--danger);
+}
+
+/* Advanced disclosure */
+.advanced__summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.advanced__summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced__summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--muted);
+}
+
+.advanced[open] .advanced__summary::before {
+  content: "▾";
+}
+
+.advanced h3 {
+  margin: 22px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.advanced__add {
+  margin-top: 14px;
+}
+
+/* Help dialog */
+.help {
+  max-width: 560px;
+  padding: 20px 24px 24px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.help::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.help__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.help__head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.help h3 {
+  margin: 18px 0 4px;
+  font-size: 14px;
+}
+
+/* Dialog body is primary reading content — keep it at full text color. */
+.help p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.help code,
+.help kbd {
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
 }

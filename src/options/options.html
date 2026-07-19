@@ -2,58 +2,69 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Org Capture — Settings</title>
+    <title>Org Protocol Client — Settings</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <main class="settings">
-      <header class="settings__header">
-        <img class="settings__logo" src="../../icons/org-mode-unicorn.png" alt="" />
-        <h1>Org Capture</h1>
+    <form id="settings-form" class="app">
+      <header class="app__bar">
+        <div class="app__brand">
+          <img class="app__logo" src="../../icons/org-mode-unicorn.png" alt="" />
+          <h1>Org Protocol Client</h1>
+        </div>
+        <div class="app__actions">
+          <span id="status" class="status" role="status" aria-live="polite"></span>
+          <button id="open-help" class="btn btn--ghost" type="button">Help</button>
+          <button id="defaults" class="btn btn--ghost" type="button"
+                  title="Load the factory settings into the form">
+            Defaults
+          </button>
+          <button id="reset" class="btn btn--ghost" type="button"
+                  title="Discard unsaved changes and reload the saved settings">
+            Reset
+          </button>
+          <button id="save" class="btn btn--primary" type="submit">Save</button>
+        </div>
       </header>
 
-      <form id="settings-form">
-        <section class="card">
-          <h2>With a selection</h2>
-          <p class="card__hint">Used when text is selected on the page.</p>
+      <main class="app__main">
+        <section class="block">
+          <div class="block__head">
+            <div>
+              <h2>Protocols</h2>
+              <p class="hint">
+                Each protocol builds one <code>org-protocol://</code> link.
+                Parameters are limited to those its sub-protocol accepts.
+              </p>
+            </div>
+            <button id="add-protocol" class="btn btn--ghost" type="button">
+              + New protocol
+            </button>
+          </div>
+          <div id="protocols" class="protocols"></div>
+        </section>
+
+        <section class="block">
+          <h2>Defaults</h2>
+          <p class="hint">
+            Which protocol quick capture sends, based on whether text is
+            selected on the page.
+          </p>
           <div class="field">
-            <label for="selected-template">Template key</label>
-            <input id="selected-template" type="text" maxlength="8" autocomplete="off" />
+            <label for="default-text">With a selection</label>
+            <select id="default-text"></select>
           </div>
           <div class="field">
-            <label for="selected-protocol">Protocol</label>
-            <select id="selected-protocol">
-              <option value="capture">capture</option>
-              <option value="roam-ref">roam-ref</option>
-            </select>
+            <label for="default-link">Without a selection</label>
+            <select id="default-link"></select>
           </div>
         </section>
 
-        <section class="card">
-          <h2>Without a selection</h2>
-          <p class="card__hint">Used when nothing is selected on the page.</p>
-          <div class="field">
-            <label for="unselected-template">Template key</label>
-            <input id="unselected-template" type="text" maxlength="8" autocomplete="off" />
-          </div>
-          <div class="field">
-            <label for="unselected-protocol">Protocol</label>
-            <select id="unselected-protocol">
-              <option value="capture">capture</option>
-              <option value="roam-ref">roam-ref</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="card">
+        <section class="block">
           <h2>Behavior</h2>
           <label class="toggle">
-            <input id="notify-on-capture" type="checkbox" />
-            <span>Show a confirmation after capturing</span>
-          </label>
-          <label class="toggle">
-            <input id="use-modern-protocol" type="checkbox" />
-            <span>Use modern query-style links (Org 9.0+)</span>
+            <input id="quick-capture" type="checkbox" />
+            <span>Capture immediately on click; skip the protocol menu</span>
           </label>
           <label class="toggle">
             <input id="debug" type="checkbox" />
@@ -61,12 +72,87 @@
           </label>
         </section>
 
-        <div class="actions">
-          <button id="save" type="submit">Save</button>
-          <span id="status" class="status" role="status"></span>
-        </div>
-      </form>
-    </main>
+        <section class="block">
+          <details class="advanced">
+            <summary class="advanced__summary">Advanced</summary>
+
+            <h3>Sub-protocols</h3>
+            <p class="hint">
+              The org-protocol handlers your protocols can target, and which
+              parameters each one accepts. Editing these changes what every
+              protocol above is allowed to send.
+            </p>
+            <div id="sub-protocols" class="protocols"></div>
+            <button id="add-sub" class="btn btn--ghost advanced__add" type="button">
+              + New sub-protocol
+            </button>
+
+            <h3>Parameters</h3>
+            <p class="hint">
+              The building blocks of a link: each parameter has a query key it
+              is sent under (URL key) and a value taken from the page — or a
+              template key you are asked for at capture time.
+            </p>
+            <div id="param-specs" class="protocols"></div>
+            <button id="add-param" class="btn btn--ghost advanced__add" type="button">
+              + New parameter
+            </button>
+          </details>
+        </section>
+      </main>
+    </form>
+
+    <dialog id="help" class="help">
+      <div class="help__head">
+        <h2>Help</h2>
+        <button id="help-close" class="btn btn--ghost" type="button">Close</button>
+      </div>
+
+      <h3>What this extension does</h3>
+      <p>
+        Click the toolbar icon (or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>,
+        <kbd>⌘⇧L</kbd> on Mac) to open a menu of your protocols. Picking one
+        builds an <code>org-protocol://</code> link from the current page and
+        hands it to Emacs.
+      </p>
+
+      <h3>Protocols</h3>
+      <p>
+        A protocol is one kind of link: a sub-protocol (the handler on the
+        Emacs side), an optional template key, and the parameters to include.
+        Add as many as you like — each becomes an entry in the capture menu.
+      </p>
+
+      <h3>Template key</h3>
+      <p>
+        Matches a key in your <code>org-capture-templates</code>. Set a fixed
+        key, or select the Template parameter instead to be asked for a key
+        each time you capture.
+      </p>
+
+      <h3>Quick capture</h3>
+      <p>
+        Skips the menu and immediately sends one of the two default protocols,
+        chosen by whether text is selected on the page.
+      </p>
+
+      <h3>Advanced</h3>
+      <p>
+        Sub-protocols define which parameters each Emacs handler accepts.
+        Parameters define the query key each value is sent under and where the
+        value comes from (page URL — raw or decoded for local files, page
+        title, selected text, or a template key). Edit these only if your
+        Emacs setup expects something custom.
+      </p>
+
+      <h3>Emacs setup</h3>
+      <p>
+        Emacs must load <code>org-protocol</code>, run
+        <code>(server-start)</code>, and your OS must register emacsclient as
+        the handler for <code>org-protocol://</code> links. See the README for
+        step-by-step instructions.
+      </p>
+    </dialog>
 
     <script type="module" src="options.js"></script>
   </body>

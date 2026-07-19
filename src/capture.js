@@ -1,88 +1,118 @@
-// Injected into the active tab when the toolbar button or keyboard shortcut
-// fires. Builds an org-protocol URL for the current page (and any selected
-// text) and hands it to Emacs by navigating to it.
+// Page-context capture helpers. These are injected (as an ES module) into the
+// active tab, so they run with access to the DOM and to chrome.storage. They
+// build an org-protocol URL for the current page and hand it to Emacs by
+// navigating to it.
 // Licensed under MIT — see LICENSE.
 
-(async () => {
-  "use strict";
+import { loadSettings, sanitizeTemplateKey, PARAM_TYPE } from "./settings.js";
 
-  const TOAST_ID = "org-capture-toast";
+// encodeURIComponent leaves ( ) ' intact, but Org's link parser treats them
+// specially, so percent-encode them too.
+function orgEscape(text) {
+	return encodeURIComponent(text)
+		.replace(/\(/g, "%28")
+		.replace(/\)/g, "%29")
+		.replace(/'/g, "%27");
+}
 
-  // encodeURIComponent leaves ( ) ' intact, but Org's link parser treats them
-  // specially, so percent-encode them too.
-  function orgEscape(text) {
-    return encodeURIComponent(text)
-      .replace(/\(/g, "%28")
-      .replace(/\)/g, "%29")
-      .replace(/'/g, "%27");
-  }
+// Undo the URL's own percent-encoding so filenames survive the round trip to
+// Emacs (which decodes the org-protocol link exactly once). Malformed escapes
+// would make decodeURIComponent throw, so fall back to the raw href.
+function decodedHref() {
+	try {
+		return decodeURIComponent(location.href);
+	} catch {
+		return location.href;
+	}
+}
 
-  function getPageContext() {
-    return {
-      url: location.href,
-      title: document.title,
-      selection: window.getSelection().toString(),
-    };
-  }
+// Resolve each of the scheme's parameters from the page according to its
+// declared type. Key-type params ask the user for a template key on the spot;
+// returns null if that prompt is cancelled.
+function getPageContext(params, settings) {
+	const context = {};
+	for (const param of params) {
+		const spec = settings.paramSpec[param];
+		if (!spec) {
+			continue; // param was deleted from the registry
+		}
+		switch (spec.type) {
+		case PARAM_TYPE.key: {
+			const key = window.prompt(`Template key for "${param}":`);
+			if (key === null) {
+				return null; // user cancelled the capture
+			}
+			context[param] = sanitizeTemplateKey(key);
+			break;
+		}
+		case PARAM_TYPE.href:
+			context[param] = orgEscape(location.href);
+			break;
+		case PARAM_TYPE.path:
+			context[param] = orgEscape(decodedHref());
+			break;
+		case PARAM_TYPE.title:
+			context[param] = orgEscape(document.title);
+			break;
+		case PARAM_TYPE.selection:
+			context[param] = orgEscape(window.getSelection().toString());
+			break;
+		}
+	}
+	return context;
+}
 
-  function buildOrgProtocolUrl(settings, page) {
-    const hasSelection = page.selection !== "";
-    const protocol = hasSelection ? settings.selectedProtocol : settings.unselectedProtocol;
-    const template = hasSelection ? settings.selectedTemplate : settings.unselectedTemplate;
+// The query key a fixed template value is sent under: the key-type param's
+// urlKey, falling back to org-protocol's conventional "template".
+function templateUrlKey(paramSpec) {
+	for (const spec of Object.values(paramSpec)) {
+		if (spec.type === PARAM_TYPE.key) {
+			return spec.urlKey;
+		}
+	}
+	return "template";
+}
 
-    const url = encodeURIComponent(page.url);
-    const title = orgEscape(page.title);
-    const body = orgEscape(page.selection);
+function buildOrgProtocolUrl(schemeSpec, settings) {
+	const context = getPageContext(schemeSpec.params, settings);
+	if (context === null) {
+		return null;
+	}
 
-    if (protocol === "roam-ref") {
-      return `org-protocol://roam-ref?template=${template}&ref=${url}&title=${title}&body=${body}`;
-    }
-    if (settings.useModernProtocol) {
-      return `org-protocol://capture?template=${template}&url=${url}&title=${title}&body=${body}`;
-    }
-    return `org-protocol://capture:/${template}/${url}/${title}/${body}`;
-  }
+	const query = [];
+	if (schemeSpec.template) {
+		query.push(`${templateUrlKey(settings.paramSpec)}=${schemeSpec.template}`);
+	}
+	for (const param of schemeSpec.params) {
+		const spec = settings.paramSpec[param];
+		if (spec && param in context) {
+			query.push(`${spec.urlKey}=${context[param]}`);
+		}
+	}
+	return "org-protocol://" + schemeSpec.subProtocol + "?" + query.join("&");
+}
 
-  function showCaptureToast() {
-    if (document.getElementById(TOAST_ID)) return;
+// Build the org-protocol URL for the named scheme and hand it to Emacs by
+// navigating the current page to it.
+export async function capture(schemeName) {
+	const settings = await loadSettings();
+	const schemeSpec = settings.schemeSpec[schemeName];
+	if (!schemeSpec) {
+		throw new Error(`unknown capture scheme: ${schemeName}`);
+	}
+	const url = buildOrgProtocolUrl(schemeSpec, settings);
+	if (url === null) {
+		return; // cancelled at the template prompt
+	}
+	if (settings.debug) {
+		console.log("[org-capture] navigating to:", url);
+	}
+	location.href = url;
+}
 
-    const toast = document.createElement("div");
-    toast.id = TOAST_ID;
-    toast.textContent = "Captured";
-    Object.assign(toast.style, {
-      position: "fixed",
-      top: "24px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      padding: "12px 24px",
-      background: "rgba(0, 0, 0, 0.82)",
-      color: "#fff",
-      font: "600 15px/1 system-ui, sans-serif",
-      borderRadius: "8px",
-      zIndex: "2147483647",
-      pointerEvents: "none",
-    });
-
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 900);
-  }
-
-  try {
-    const settings = await chrome.storage.sync.get(null);
-    const page = getPageContext();
-    const orgUrl = buildOrgProtocolUrl(settings, page);
-
-    if (settings.debug) {
-      console.log("[org-capture] navigating to:", orgUrl);
-    }
-
-    location.href = orgUrl;
-
-    if (settings.notifyOnCapture) {
-      showCaptureToast();
-    }
-  } catch (error) {
-    console.error("[org-capture] capture failed:", error);
-    alert("Org Capture: could not capture this page.\n" + error.message);
-  }
-})();
+// Capture straight away, picking the scheme from whether text is selected.
+export async function quickCapture() {
+	const settings = await loadSettings();
+	const hasSelection = window.getSelection().toString().length > 0;
+	await capture(hasSelection ? settings.defaultTextScheme : settings.defaultLinkScheme);
+}
