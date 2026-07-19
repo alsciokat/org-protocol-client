@@ -46,9 +46,6 @@ function getPageContext(params, settings) {
 			break;
 		}
 		case PARAM_TYPE.href:
-			context[param] = orgEscape(location.href);
-			break;
-		case PARAM_TYPE.path:
 			context[param] = orgEscape(decodedHref());
 			break;
 		case PARAM_TYPE.title:

@@ -7,7 +7,6 @@ export const PARAM = {
 	template: "Template",
 	title: "Title",
 	url: "URL",
-	path: "Path",
 	ref: "Ref",
 	body: "Body",
 };
@@ -15,9 +14,6 @@ export const PARAM = {
 export const PARAM_TYPE = {
 	key: "key",
 	href: "href",
-	// href with percent-encoding decoded — for handlers like open-source that
-	// map the URL to a local filename, which must not stay URL-encoded.
-	path: "path",
 	title: "title",
 	selection: "selection",
 };
@@ -33,7 +29,7 @@ export const SUB_PROTO_SCHEME = {
 	[SUB_PROTO.capture]: [PARAM.template, PARAM.url, PARAM.title, PARAM.body],
 	[SUB_PROTO.roamRef]: [PARAM.template, PARAM.ref, PARAM.title, PARAM.body],
 	[SUB_PROTO.storeLink]: [PARAM.url, PARAM.title],
-	[SUB_PROTO.openSource]: [PARAM.path],
+	[SUB_PROTO.openSource]: [PARAM.url],
 };
 
 // application layer specification
@@ -51,10 +47,6 @@ export const DEFAULT_SETTINGS = {
 		[PARAM.url]: {
 			urlKey: "url",
 			type: PARAM_TYPE.href,
-		},
-		[PARAM.path]: {
-			urlKey: "url",
-			type: PARAM_TYPE.path,
 		},
 		[PARAM.ref]: {
 			urlKey: "ref",
@@ -86,10 +78,10 @@ export const DEFAULT_SETTINGS = {
 			params: [PARAM.url, PARAM.title],
 		},
 		"Open source": {
-			description: "Open url via Emacs",
+			description: "Open local file in org-protocol-project-alist",
 			subProtocol: SUB_PROTO.openSource,
 			template: null,
-			params: [PARAM.path],
+			params: [PARAM.url],
 		},
 	},
 	defaultTextScheme: "Capture selection",

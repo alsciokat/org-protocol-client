@@ -15,14 +15,6 @@
         <div class="app__actions">
           <span id="status" class="status" role="status" aria-live="polite"></span>
           <button id="open-help" class="btn btn--ghost" type="button">Help</button>
-          <button id="defaults" class="btn btn--ghost" type="button"
-                  title="Load the factory settings into the form">
-            Defaults
-          </button>
-          <button id="reset" class="btn btn--ghost" type="button"
-                  title="Discard unsaved changes and reload the saved settings">
-            Reset
-          </button>
           <button id="save" class="btn btn--primary" type="submit">Save</button>
         </div>
       </header>
@@ -100,6 +92,17 @@
           </details>
         </section>
       </main>
+
+      <footer class="app__footer">
+        <button id="defaults" class="btn btn--danger" type="button"
+                title="Load the factory settings into the form">
+          Defaults
+        </button>
+        <button id="reset" class="btn btn--danger" type="button"
+                title="Discard unsaved changes and reload the saved settings">
+          Reset
+        </button>
+      </footer>
     </form>
 
     <dialog id="help" class="help">
@@ -110,8 +113,8 @@
 
       <h3>What this extension does</h3>
       <p>
-        Click the toolbar icon (or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>,
-        <kbd>⌘⇧L</kbd> on Mac) to open a menu of your protocols. Picking one
+        Click the toolbar icon (or press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd>,
+        <kbd>⌘⇧X</kbd> on Mac) to open a menu of your protocols. Picking one
         builds an <code>org-protocol://</code> link from the current page and
         hands it to Emacs.
       </p>
@@ -138,18 +141,17 @@
 
       <h3>Advanced</h3>
       <p>
-        Sub-protocols define which parameters each Emacs handler accepts.
-        Parameters define the query key each value is sent under and where the
-        value comes from (page URL — raw or decoded for local files, page
-        title, selected text, or a template key). Edit these only if your
-        Emacs setup expects something custom.
+        Sub-protocols define which parameters each Emacs handler accepts.  Parameters
+        define the query key each value is sent under and where the value comes from (page
+        URL, page title, selected text, or a template key). Edit these only if your Emacs
+        setup expects something custom.
       </p>
 
       <h3>Emacs setup</h3>
       <p>
         Emacs must load <code>org-protocol</code>, run
         <code>(server-start)</code>, and your OS must register emacsclient as
-        the handler for <code>org-protocol://</code> links. See the README for
+        the handler for <code>org-protocol://</code> links. See the <a href="https://github.com/alsciokat/org-protocol-client">README</a> for
         step-by-step instructions.
       </p>
     </dialog>

@@ -77,10 +77,26 @@ body {
   width: 100%;
   max-width: 1040px;
   margin: 0 auto;
-  padding: 28px 32px 56px;
+  padding: 28px 32px;
   display: flex;
   flex-direction: column;
   gap: 28px;
+}
+
+/* Destructive-leaning actions live at the bottom, away from Save. */
+.app__footer {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 32px 40px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+/* Full-size here, unlike the compact card Delete buttons. */
+.app__footer .btn--danger {
+  padding: 9px 18px;
 }
 
 .block__head {
