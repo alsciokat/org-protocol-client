@@ -78,6 +78,7 @@ function toState(settings) {
     defaultTextScheme: settings.defaultTextScheme,
     defaultLinkScheme: settings.defaultLinkScheme,
     quickCapture: Boolean(settings.quickCapture),
+    contextMenu: Boolean(settings.contextMenu),
     debug: Boolean(settings.debug),
   };
 }
@@ -503,6 +504,7 @@ function renderDefaults() {
 
 function renderBehavior() {
   document.getElementById("quick-capture").checked = state.quickCapture;
+  document.getElementById("context-menu").checked = state.contextMenu;
   document.getElementById("debug").checked = state.debug;
 }
 
@@ -566,6 +568,7 @@ function collect() {
     defaultTextScheme: resolveDefault(state.defaultTextScheme),
     defaultLinkScheme: resolveDefault(state.defaultLinkScheme),
     quickCapture: state.quickCapture,
+    contextMenu: state.contextMenu,
     debug: state.debug,
   };
 }
@@ -640,6 +643,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   document.getElementById("quick-capture").addEventListener("change", (event) => {
     state.quickCapture = event.target.checked;
+  });
+  document.getElementById("context-menu").addEventListener("change", (event) => {
+    state.contextMenu = event.target.checked;
   });
   document.getElementById("debug").addEventListener("change", (event) => {
     state.debug = event.target.checked;

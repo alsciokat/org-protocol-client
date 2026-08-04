@@ -87,6 +87,7 @@ export const DEFAULT_SETTINGS = {
 	defaultTextScheme: "Capture selection",
 	defaultLinkScheme: "Capture link",
 	quickCapture: false,
+	contextMenu: true,
 	debug: false,
 };
 

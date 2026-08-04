@@ -85,10 +85,6 @@ or download directly from [sprig/org-capture-extension](https://github.com/sprig
 See [org-protocol documentation](https://orgmode.org/worg/org-contrib/org-protocol.html)
 for alternatives.
 
-The first time you capture, the browser asks permission to open the external
-handler — accept it (optionally for all future links).
-
-
 **Windows:** modify the registry
 by creating the following `.reg` file
 and executing it. Be careful with the path
@@ -106,7 +102,6 @@ Windows Registry Editor Version 5.00
 [HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
 @="\"C:\\Program Files\\Emacs\\emacs\\bin\\emacsclientw.exe\" \"%1\""
 ```
-
 
 Windows does not support local domain socket, so you must use TCP socket by
 adding the following to your `init.el`.
@@ -128,6 +123,11 @@ The defaults:
 |Capture selection|`capture`    |URL + title + selection to template `]`|
 |Store link       |`store-link` |URL + title for `C-c C-l`              |
 |Open source      |`open-source`|decoded URL, opened locally in Emacs   |
+
+The first time you capture, the browser asks permission to open the external
+handler — accept it, ticking **"Always allow…"** to skip the dialog on future
+captures. The link is launched from the extension's own origin, so a single
+"always allow" applies to every site rather than needing re-approval per site.
 
 ## Settings
 
