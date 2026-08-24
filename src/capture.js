@@ -107,18 +107,14 @@ export async function capture(schemeName) {
 	launchOrgProtocol(url);
 }
 
-// Hand the org-protocol URL to Emacs from the extension's own origin instead of
-// the page's. Chrome remembers the "always allow" external-protocol grant per
-// initiating origin; launching straight from the page (location.href = url)
-// meant re-approving on every new site. Framing a short-lived extension page
-// (launch.html) makes the extension the initiator, so one allow covers all
-// sites. The frame is removed once the redirect has had a chance to fire.
+// Hand the org-protocol URL to Emacs by navigating the current page to it.
+// Chrome scopes its "always allow" external-protocol grant to the initiating
+// origin, so the user approves once per site. We navigate straight from the
+// page rather than from an extension-origin frame/tab: framing tricks earn a
+// single global grant, but a strict page CSP (e.g. Wikipedia) blocks the frame
+// and the launch silently fails. A plain redirect always works.
 function launchOrgProtocol(url) {
-	const iframe = document.createElement("iframe");
-	iframe.style.display = "none";
-	iframe.src = chrome.runtime.getURL("src/launch.html") + "#" + encodeURIComponent(url);
-	iframe.addEventListener("load", () => setTimeout(() => iframe.remove(), 1000));
-	document.body.appendChild(iframe);
+	location.href = url;
 }
 
 // Capture straight away, picking the scheme from whether text is selected.

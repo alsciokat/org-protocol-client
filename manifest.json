@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Org Protocol Client",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Client for calling Emacs' Org protocol including capture, roam-ref, store-link, open-source, and more.",
   "homepage_url": "https://github.com/alsciokat/org-protocol-client",
 
@@ -24,7 +24,6 @@
         "src/capture.js",
         "src/menu.js",
         "src/settings.js",
-        "src/launch.html",
         "icons/org-mode-unicorn.png"
       ],
       "matches": ["<all_urls>"]
