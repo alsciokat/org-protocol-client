@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "Org Protocol Client",
+  "version": "1.1.1",
+  "description": "Client for calling Emacs' Org protocol including capture, roam-ref, store-link, open-source, and more.",
+  "homepage_url": "https://github.com/alsciokat/org-protocol-client",
+  "background": {
+    "scripts": [
+      "src/service-worker.js"
+    ],
+    "type": "module"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "org-protocol-client@alsciokat",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "contextMenus"
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/capture.js",
+        "src/menu.js",
+        "src/settings.js",
+        "icons/org-mode-unicorn.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "description": "Capture current page with org-capture",
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      }
+    }
+  }
+}

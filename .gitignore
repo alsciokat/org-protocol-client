@@ -1,4 +1,7 @@
 ## Ignore temporary files:
 *~
 \#*\#
+## Build output and signing key:
+dist/
 org-protocol-client.zip
+org-protocol-client-key.pem

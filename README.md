@@ -1,6 +1,7 @@
 # Org Protocol Client
 
-A Chrome extension (Manifest V3) that sends the current page to Emacs as an
+A browser extension (Manifest V3, for Chrome and Firefox) that sends the
+current page to Emacs as an
 [`org-protocol://`](https://orgmode.org/worg/org-contrib/org-protocol.html)
 link — capture a page or selection with org-capture, store a link for
 `org-insert-link`, add a Roam ref, or open the page in Emacs.
@@ -24,12 +25,21 @@ link — capture a page or selection with org-capture, store a link for
 
 ### Install Extension
 
-Download it from the [Chrome extension store](https://chromewebstore.google.com/detail/org-protocol-client/cejabhlekhkbajhhfpbgdaomkkocegam "Org Protocol Client").
+**Chrome:** download it from the
+[Chrome extension store](https://chromewebstore.google.com/detail/org-protocol-client/cejabhlekhkbajhhfpbgdaomkkocegam "Org Protocol Client").
 
-Or install manually as follows:
-1. Clone this repository.
-2. Open `chrome://extensions`, enable **Developer mode**.
-3. Click **Load unpacked** and select the repository folder.
+**Firefox:** not yet listed on addons.mozilla.org; build it from source (below).
+
+Or build and load it manually:
+1. Clone this repository and run `make` (needs GNU make and `zip`). This
+   produces an unpacked extension per browser in `dist/chrome/` and
+   `dist/firefox/`, plus a zip of each for store upload.
+2. *Chrome:* open `chrome://extensions`, enable **Developer mode**, click
+   **Load unpacked** and select `dist/chrome/`.
+3. *Firefox:* open `about:debugging#/runtime/this-firefox`, click **Load
+   Temporary Add-on…** and select `dist/firefox/manifest.json`. Temporary
+   add-ons are removed when Firefox exits; a permanent install needs the zip
+   signed through addons.mozilla.org.
 
 ### Setup Emacs
 
@@ -173,6 +183,22 @@ parser treats specially.
   template key does not match any entry in `org-capture-templates`.
 - **Settings look wrong after an update** — press **Defaults**, then **Save**,
   to rewrite storage with the current schema.
+
+## Building
+
+The source under `src/` and `icons/` is shared by both browsers; only the
+manifest differs. `manifest.chrome.json` uses a background service worker,
+while `manifest.firefox.json` uses an event page and carries the Gecko add-on
+id. Keep the `version` field identical in both; the build refuses to run when
+they differ.
+
+```sh
+make            # build both browsers
+make chrome     # dist/chrome/ and dist/org-protocol-client-<version>-chrome.zip
+make firefox    # dist/firefox/ and dist/org-protocol-client-<version>-firefox.zip
+make lint       # web-ext lint on the Firefox build (needs web-ext)
+make clean      # remove dist/
+```
 
 ## License
 
